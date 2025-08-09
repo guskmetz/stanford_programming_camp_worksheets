@@ -21,7 +21,7 @@ This is a basic template for a Quarto document. Quarto files can take many forms
 
 ## Data
 
-Here, you will load in the data for your plot. We will use the `nycflights13` package to load in the data.
+Here, you will load in the data for your plot. We will use the `nycflights13` package to load in the data and follow my cleaning procedure from the slides and worksheet today.
 
 ```{r construct_data, message=FALSE, warning=FALSE}
 
@@ -77,15 +77,21 @@ nyc_weather_delays %>%
 
 ## Regressions
 
-Here, use your favorite regression model to estimate the effect of weather on flight delays. Feel free to replace my model with your own.
+Here, use your favorite regression model to estimate the effect of weather on flight delays. We are interested in the effect of temperature, precipitation, wind speed, and maximum wind speed on flight delays.
+
+Feel free to replace my model with your own. I estimate the following model:
+
+$$
+\text{dep\_delay}_{ijt} = \alpha + \beta_1 \text{temp}_{ijt} + \beta_2 \text{precip}_{ijt} + \beta_3 \text{wind}_{ijt} + \beta_4 \text{max\_wind}_{ijt} + \delta_i + \gamma_j + \epsilon_{ijt}
+$$
+
+where $i$ is the origin, $j$ is the carrier, and $t$ is the date.
 
 ```{r regressions}
 
 weather_delay_model_fe <- 
   felm(dep_delay ~ temp + precip + wind + max_wind |
                    origin + carrier, nyc_weather_delays)
-
-summary(weather_delay_model_fe, robust = T)
 ```
 
 
