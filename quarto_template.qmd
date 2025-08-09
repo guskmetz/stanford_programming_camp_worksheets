@@ -1,0 +1,98 @@
+---
+title: "Y/T"
+author: "Y/N"
+date: today
+output: html_document
+---
+
+
+```{r setup, message=FALSE}
+library(tidyverse)
+library(nycflights13)
+library(ggthemes)
+library(lfe)
+library(stargazer)
+library(sandwich)
+```
+
+# Introduction
+
+This is a basic template for a Quarto document. Quarto files can take many forms, but this is a good starting point, and will guide you through the process of making a Quarto document that features the data pull. It has been cleaned up, and showcases some different options for the Quarto output.
+
+## Data
+
+Here, you will load in the data for your plot. We will use the `nycflights13` package to load in the data.
+
+```{r construct_data, message=FALSE, warning=FALSE}
+
+nyc_flights <-
+  flights %>%
+  group_by(carrier, year, month, day, origin) %>%
+  summarise(dep_delay = mean(dep_delay, na.rm = T),
+            max_dep_delay = max(dep_delay, na.rm = T),
+            frac_delayed = sum(dep_delay > 0, na.rm = T) / n(),
+            frac_cancelled = sum(is.na(dep_time )) / n(),
+            n = n()) %>%
+  filter(n >= 10)
+
+nyc_weather <-
+  weather %>%
+  group_by(year, month, day, origin) %>% 
+  summarise(temp   = mean(temp, na.rm = TRUE),
+            min_temp = min(temp, na.rm = TRUE),
+            max_temp = max(temp, na.rm = TRUE),
+            wind   = mean(wind_speed, na.rm = TRUE),
+            max_wind = max(wind_speed, na.rm = TRUE),
+            precip = sum(precip, na.rm = TRUE))
+
+nyc_weather_delays <-
+  nyc_flights %>%
+  inner_join(nyc_weather, by = c("year", "month", "day", "origin"))
+
+nyc_weather_delays <- nyc_weather_delays %>%
+  left_join(airlines, by = "carrier")
+```
+
+
+## Plot
+
+Here, you will make your plot. Plot the fraction of delayed flights by carrier overall.
+
+```{r make_plot, echo=FALSE}
+
+nyc_weather_delays %>%
+    group_by(name) %>%
+    summarise(delayed_flights = sum(frac_delayed * n), total_flights = sum(n)) %>%
+    mutate(frac_delayed = delayed_flights / total_flights) %>%
+    ggplot(aes(y = fct_reorder(name, frac_delayed), x = frac_delayed, fill = frac_delayed)) +
+    geom_col() +
+    labs(x = "Fraction Delayed",
+       y = "Carrier") + 
+    theme_economist() +
+    guides(fill = "none")
+
+```
+
+
+
+## Regressions
+
+Here, use your favorite regression model to estimate the effect of weather on flight delays. Feel free to replace my model with your own.
+
+```{r regressions}
+
+weather_delay_model_fe <- 
+  felm(dep_delay ~ temp + precip + wind + max_wind |
+                   origin + carrier, nyc_weather_delays)
+
+summary(weather_delay_model_fe, robust = T)
+```
+
+
+## Stargazer
+
+Here, you will use the `stargazer` package to create a regression table.
+
+```{r stargazer, results='asis', echo=FALSE}
+stargazer(weather_delay_model_fe, header = F, type = "html")
+```
