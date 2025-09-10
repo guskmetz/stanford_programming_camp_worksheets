@@ -109,7 +109,7 @@ filter(babynames,
 
 filter(babyname, name == "Sea" | name == "Anemone")
 
-# Why is the name Shifrah non in babynames?
+# Why is the name Shifrah not in babynames?
 
 arrange(babynames, n)
 
