@@ -8,10 +8,15 @@ library(dplyr)
 
 
 # import data
+# (on the slides we show how you'd read this from a file:)
 babynames <- read_csv(file = "data/babynames.csv")
 
+# Alternate if it dies.
+#library(babynames)
+
+
 # inspect the data
-babynames  
+babynames
 
 # what happens if we plot the data?
 
