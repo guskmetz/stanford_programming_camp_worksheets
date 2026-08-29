@@ -49,6 +49,7 @@ mean(odd)
 
 # fill in to code here to install and load libraries
 # best practice is to put this at the top of your code file
+# comment these out again once you've run them
 install.packages("ggplot2")
 install.packages("AER")
 
@@ -89,25 +90,23 @@ ggplot() +
 # are represented by different shapes
 
 
+# Install and load the package `ggthemes`
+# comment this out again once you've run it
+install.packages("ggthemes")
+library(ggthemes)
+
+
 # Try changing the plot so that instead of points 
 # each observation is represented by the state abb `geom_text()`
 # what are the aesthetics for geom_text?
-ggplot(data = CigarettesSW, aes(x = tax, y = packs, label = state)) + 
+# Then try **adding** a theme such as `theme_stata()` or `theme_economist()`
+ggplot(data = CigarettesSW, aes(x = tax, y = packs, label = )) + 
   #geom_text() +
   labs(x = "Average Excise Tax",
        y = "Per Capita Cigarette Consumption (Packs)",
        color = "Year",
        title = "Excise Taxes and Cigarette Consumption") +
-  theme_economist()
-
-
-
-# Install and load the package `ggthemes`
-install.packages("ggthemes")
-library(ggthemes)
-
-# Try **adding** a theme to your plot such as `theme_stata()` or
-# `theme_economist()`
+  theme_
 
 
 # How has the distribution of taxes changed over time?
@@ -130,8 +129,7 @@ ggplot(CigarettesSW, aes(x = tax, fill = year)) +
   labs(x = "Average Excise Tax",
        y = "Count(States)",
        fill = "Year",
-       title = "Distribution of Excise Taxes over Time")
-+ 
+       title = "Distribution of Excise Taxes over Time") + 
   scale_x_log10()
 
 
@@ -156,8 +154,9 @@ ggplot(data = bw, aes(x = job, fill = minority)) +
   facet_wrap("gender")
 
 # Save a chart
+# (the point here is ggsave() -- feel free to swap in a different chart)
 p_minority_gender <-
-  ggplot(data = bw, aes(x = job, fill = factor(education))) +
+  ggplot(data = bw, aes(x = job, fill = minority)) +
   geom_bar() +
   labs(x = "Job",
        y = "Count",
@@ -168,3 +167,7 @@ p_minority_gender
 
 ggsave(p_minority_gender, filename = "test.pdf",
        width = 6.5, height = 4, units = "in")
+
+
+
+

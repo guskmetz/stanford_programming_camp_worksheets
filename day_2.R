@@ -5,6 +5,7 @@
 library(readr)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 
 
 # import data
@@ -59,13 +60,6 @@ ggplot()
 
 
 
-
-
-
-
-
-
-
 # filter
 babynames_mary <- filter(babynames, name == "Mary")
 
@@ -82,11 +76,13 @@ ggplot(data = babynames_mary_sarah, aes(x = year, y = prop, color = sex, linewid
 
 # which name had the highest ever number/proportion of babies? 
 # HINT: use the max() function wisely
-filter(babynames, prop == max(prop))
+filter(babynames, # What goes here?
+       )
 
 
 # use boolean operators to return only rows that contain:
 # 1. Boys names Leslie
+# (Barbie is a placeholder -- swap in your own filter)
 ggplot(filter(babynames, name == "Barbie"), aes(x = year, y = n)) + 
   geom_line()
 
@@ -112,7 +108,7 @@ filter(babynames,
 
 # 3. Names that are one of Anakin, Leia, Luke
 
-filter(babyname, name == "Sea" | name == "Anemone")
+filter(babynames, name == "Sea" | name == "Anemone")
 
 # Why is the name Shifrah not in babynames?
 
@@ -125,11 +121,13 @@ names_2015 <- filter(babynames, year == 2015, sex == "M")
 
 ordered_names_2015 <- arrange(names_2015, -n)
 
-top_5_M_2015 <- head(ordered_names_2015)
+top_5_M_2015 <- head(ordered_names_2015, n = FILL_IN)
 
 # Pipes
 
 # Using pipes make a plot of your name's popularity over time
+# In honor of the previous R programming course teacher,
+# fill in with your own
 
 babynames %>%
   filter(name == "Shifra") %>%
@@ -154,25 +152,25 @@ babynames %>%
 
 # 1. For each year calculate the number of distinct names by sex. Plot these time series.
 babynames %>%
-  group_by(year, sex) %>%
-  summarise(n = n_distinct(name)) %>%
-  ggplot(aes(x = year, y = n, color = sex)) + 
+  group_by( ) %>%
+  summarise(n = n_distinct( )) %>%
+  ggplot(aes(x = , y = , color = )) + 
   geom_line()
 
 
 # 2. Plot the share of babies with a name among the top 10 names over time by sex
 babynames %>%
-  group_by(year, sex) %>%
-  arrange(-n) %>%
-  slice_head(n = 10) %>%
-  summarise(frac = sum(prop)) %>%
+  group_by( ) %>%
+  arrange( ) %>%
+  slice_head(n = FILL_IN) %>%
+  summarise(frac = ) %>%
   ungroup() %>%
-  ggplot(aes(x = year, y = frac, color = sex), data  = .) + 
+  ggplot(aes(x = , y = , color = )) + 
   geom_line()
 
 
-# plot the time series of number of babies born with the top 6 names of all time by sex
-# each name it's own plot
+# BONUS: plot the time series of number of babies born with the top 6 names
+# of all time by sex, with each name on its own plot
 top_6_names <-
   babynames %>%
   group_by(sex) %>%
@@ -204,7 +202,40 @@ babynames %>%
 # 3. Take the top 10 most dramatic collapses over time
 # Step 2: plot the popularity over time for those names
 
+babynames %>%
+  group_by( ) %>%
+  mutate(max_prop = ) %>%
+  filter( ) %>%
+  mutate(change_in_pop = ) %>%
+  summarise(min_change = )
 
+
+# OPTIONAL HOMEWORK (see the day 2 slides)
+# Challenge: come up with a way to identify names that "switch" sex over time
+# -- e.g. Leslie, Santana, Kerry, Jackie
+# Have a go yourself. One solution is in the SOLUTIONS section at the
+# bottom of this file.
+
+babynames %>%
+  group_by( ) %>%
+  filter( ) %>%
+  summarise( )
+
+
+# Tidy data
+
+table1
+table2
+table3
+table4a
+table4b
+
+
+######################### SOLUTIONS #########################
+# Don't read these until you've had a go!
+
+
+# "Names that switch" -- one possible approach
 at_least_500_babies <-
   babynames %>%
   group_by(name, year) %>%
@@ -232,13 +263,3 @@ babynames %>%
   ggplot(aes(x = year, y = n, color = sex)) + 
   geom_line() + 
   facet_wrap("name", scales = "free")
-
-
-# Tidy data
-
-table1
-table2
-table3
-table4a
-table4b
-

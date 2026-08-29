@@ -27,27 +27,31 @@ Here, you will load in the data for your plot. We will use the `nycflights13` pa
 
 nyc_flights <-
   flights %>%
-  group_by(carrier, year, month, day, origin) %>%
-  summarise(dep_delay = mean(dep_delay, na.rm = T),
-            max_dep_delay = max(dep_delay, na.rm = T),
-            frac_delayed = sum(dep_delay > 0, na.rm = T) / n(),
-            frac_cancelled = sum(is.na(dep_time )) / n(),
+  filter(!is.na(dep_delay)) %>%
+  group_by(year, month, day, carrier, origin) %>%
+  summarise(mean_delay = mean(dep_delay, na.rm = T),
+            max_delay  = max(dep_delay, na.rm = T),
+            frac_delay = mean(dep_delay > 0, na.rm = T),
             n = n()) %>%
+  ungroup() %>%
   filter(n >= 10)
 
 nyc_weather <-
-  weather %>%
-  group_by(year, month, day, origin) %>% 
-  summarise(temp   = mean(temp, na.rm = TRUE),
-            min_temp = min(temp, na.rm = TRUE),
-            max_temp = max(temp, na.rm = TRUE),
-            wind   = mean(wind_speed, na.rm = TRUE),
-            max_wind = max(wind_speed, na.rm = TRUE),
-            precip = sum(precip, na.rm = TRUE))
+  weather %>% 
+  group_by(year, month, day, origin) %>%
+  summarise(mean_temp = mean(temp, na.rm = T),
+            max_temp = max(temp, na.rm = T),
+            min_temp = min(temp, na.rm = T),
+            mean_wind_speed = mean(wind_speed, na.rm = T),
+            max_wind_speed = max(wind_speed, na.rm = T),
+            min_wind_speed = min(wind_speed, na.rm = T),
+            total_precip = sum(precip, na.rm = T)) %>%
+  ungroup()
 
 nyc_weather_delays <-
   nyc_flights %>%
-  inner_join(nyc_weather, by = c("year", "month", "day", "origin"))
+  inner_join(nyc_weather, 
+             by = join_by("year", "month", "day", "origin"))
 
 nyc_weather_delays <- nyc_weather_delays %>%
   left_join(airlines, by = "carrier")
@@ -62,9 +66,9 @@ Here, you will make your plot. Plot the fraction of delayed flights by carrier o
 
 nyc_weather_delays %>%
     group_by(name) %>%
-    summarise(delayed_flights = sum(frac_delayed * n), total_flights = sum(n)) %>%
-    mutate(frac_delayed = delayed_flights / total_flights) %>%
-    ggplot(aes(y = fct_reorder(name, frac_delayed), x = frac_delayed, fill = frac_delayed)) +
+    summarise(delayed_flights = sum(frac_delay * n), total_flights = sum(n)) %>%
+    mutate(frac_delay = delayed_flights / total_flights) %>%
+    ggplot(aes(y = fct_reorder(name, frac_delay), x = frac_delay, fill = frac_delay)) +
     geom_col() +
     labs(x = "Fraction Delayed",
        y = "Carrier") + 
@@ -82,7 +86,7 @@ Here, use your favorite regression model to estimate the effect of weather on fl
 Feel free to replace my model with your own. I estimate the following model:
 
 $$
-\text{dep\_delay}_{ijt} = \alpha + \beta_1 \text{temp}_{ijt} + \beta_2 \text{precip}_{ijt} + \beta_3 \text{wind}_{ijt} + \beta_4 \text{max\_wind}_{ijt} + \delta_i + \gamma_j + \epsilon_{ijt}
+\text{mean\_delay}_{ijt} = \alpha + \beta_1 \text{mean\_temp}_{ijt} + \beta_2 \text{total\_precip}_{ijt} + \beta_3 \text{mean\_wind\_speed}_{ijt} + \beta_4 \text{max\_wind\_speed}_{ijt} + \delta_i + \gamma_j + \epsilon_{ijt}
 $$
 
 where $i$ is the origin, $j$ is the carrier, and $t$ is the date.
@@ -90,8 +94,9 @@ where $i$ is the origin, $j$ is the carrier, and $t$ is the date.
 ```{r regressions}
 
 weather_delay_model_fe <- 
-  felm(dep_delay ~ temp + precip + wind + max_wind |
-                   origin + carrier, nyc_weather_delays)
+  felm(mean_delay ~ mean_temp + total_precip + 
+         mean_wind_speed + max_wind_speed |
+       origin + carrier, nyc_weather_delays)
 ```
 
 

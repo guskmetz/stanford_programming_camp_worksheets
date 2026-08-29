@@ -13,3 +13,7 @@ quarto_template_files/libs/quarto-html/quarto.js
 quarto_template_files/libs/quarto-html/tippy.css
 quarto_template_files/libs/quarto-html/tippy.umd.min.js
 quarto_template_files/libs/quarto-html/tabsets/tabsets.js
+
+# Quarto render artifacts
+*_files/
+*.rmarkdown

@@ -108,28 +108,32 @@ while(z > 0.1){
 
 nyc_flights <-
   flights %>%
-  group_by(carrier, year, month, day, origin) %>%
-  summarise(dep_delay = mean(dep_delay, na.rm = T),
-            max_dep_delay = max(dep_delay, na.rm = T),
-            frac_delayed = sum(dep_delay > 0, na.rm = T) / n(),
-            frac_cancelled = sum(is.na(dep_time )) / n(),
+  filter(!is.na(dep_delay)) %>%
+  group_by(year, month, day, carrier, origin) %>%
+  summarise(mean_delay = mean(dep_delay, na.rm = T),
+            max_delay  = max(dep_delay, na.rm = T),
+            frac_delay = mean(dep_delay > 0, na.rm = T),
             n = n()) %>%
+  ungroup() %>%
   filter(n >= 10)
 
 
 nyc_weather <-
-  weather %>%
-  group_by(year, month, day, origin) %>% 
-  summarise(temp   = mean(temp, na.rm = TRUE),
-            min_temp = min(temp, na.rm = TRUE),
-            max_temp = max(temp, na.rm = TRUE),
-            wind   = mean(wind_speed, na.rm = TRUE),
-            max_wind = max(wind_speed, na.rm = TRUE),
-            precip = sum(precip, na.rm = TRUE))
+  weather %>% 
+  group_by(year, month, day, origin) %>%
+  summarise(mean_temp = mean(temp, na.rm = T),
+            max_temp = max(temp, na.rm = T),
+            min_temp = min(temp, na.rm = T),
+            mean_wind_speed = mean(wind_speed, na.rm = T),
+            max_wind_speed = max(wind_speed, na.rm = T),
+            min_wind_speed = min(wind_speed, na.rm = T),
+            total_precip = sum(precip, na.rm = T)) %>%
+  ungroup()
 
 nyc_weather_delays <-
   nyc_flights %>%
-  inner_join(nyc_weather, by = c("year", "month", "day", "origin"))
+  inner_join(nyc_weather, 
+             by = join_by("year", "month", "day", "origin"))
 
 
 #################### Functions #################### 
@@ -160,7 +164,7 @@ betas <-
 
 for(i in 1:100){
   temp_model <-
-    lm(dep_delay ~ precip,
+    lm(mean_delay ~ total_precip,
        sample_frac(nyc_weather_delays, 0.25, replace = T)) %>%
     broom::tidy()
   betas$beta[i] <- temp_model$estimate[2]
@@ -175,12 +179,8 @@ betas %>%
 
 
 calc_beta <- function(n){
-  temp_model <-
-    lm(dep_delay ~ precip,
-       sample_frac(nyc_weather_delays, 0.25, replace = T)) %>%
-    broom::tidy()
-  return(tibble(beta = temp_model$estimate[2],
-                n = n))
+  # your code here
+  
 }
 
 
@@ -188,13 +188,13 @@ calc_beta(1)
 
 
 tic()
-for(i in 1:10){
-  beta(i)
+for(i in 1:100){
+  calc_beta(i)
 }
 toc()
 
 tic()
-map_dfr(1:10, beta)
+map_dfr(1:100, calc_beta)
 toc()
 # How many star ships has Luke been in?
 
@@ -236,7 +236,7 @@ toc()
 
 # What are the speed gains from parallelizing your bootstrap procedure?
 tic()
-future_map_dfr(1:10, calc_beta)
+future_map_dfr(1:100, calc_beta)
 toc()
 
 

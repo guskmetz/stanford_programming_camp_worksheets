@@ -6,6 +6,8 @@
 library(tidyverse)
 library(nycflights13)
 library(stargazer)
+library(AER)   # coeftest() via lmtest, vcovHC() via sandwich
+library(lfe)   # felm()
 
 ########################### Tidy data ########################### 
 
@@ -65,12 +67,15 @@ stocks %>%
   mutate(year = as.numeric(year))
 
 
-# why does this code fail?
+# why does this code fail?  (run it and read the error)
 
 table4a %>% 
-  pivot_longer(c(`1999`, `2000`), 
+  pivot_longer(c(1999, 2000), 
                names_to = "year", 
                values_to = "cases")
+
+# now fix it:
+
 
 
 
@@ -99,16 +104,16 @@ flights %>%
 
 # 1.  Had an arrival delay of two or more hours
 flights %>%
-  filter(arr_delay > 120)
+  filter(arr_delay )
 
 # 2.  Flew to Houston (IAH or HOU)
 flights %>%
-  filter(dest %in% c("IAH", "HOU"))
+  filter(dest )
 
 # 3.  Arrived more than two hours late, but didn’t leave late
 flights %>%
-  filter(arr_delay > 120,
-         dep_delay <= 0)
+  filter(arr_delay ,
+         dep_delay )
 
 
 # Explore a bit:
@@ -116,19 +121,21 @@ flights %>%
 # 1. What does a cancelled flight look like?
 
 # 2. Make a data set called `not_cancelled` that contains all non-cancelled flights
-not_cancelled <-
-  flights %>%
-  drop_na(air_time)
-
+# an example using is.na()
 not_cancelled <-
   flights %>%
   filter(!is.na(air_time))
+
+# the same thing using the tidyr function drop_na()
+not_cancelled <-
+  flights %>%
+  drop_na(air_time)
 # or arrival time
 
 # 3. Make a data set called `cancelled` that contains all cancelled_flights
 cancelled <-
   flights %>%
-  filter(!is.na(arr_time))
+  filter(is.na(arr_time))
 
 
 # Use `arrange()` to:
@@ -145,11 +152,10 @@ cancelled <-
 
 flights %>%
   mutate(is_cancelled = is.na(arr_time)) %>%
-  group_by(carrier) %>%
-  summarise(frac_cancelled = mean(is_cancelled)) %>%
-  full_join(airlines) %>%
-  ggplot(aes(y = reorder(name, -frac_cancelled), x = frac_cancelled,)) + 
-  geom_col() 
+  group_by( ) %>%
+  summarise(frac_cancelled = ) %>%
+  ggplot(aes(y = fct_reorder( ), x = )) + 
+  geom_col()
 
 
 
@@ -157,6 +163,9 @@ flights %>%
 ########################### Relational Data ########################### 
 
 # join on the airlines dataset and remake the chart
+# (now with the airline's full name instead of the carrier code)
+
+# FILL IN HERE
 
 
 # 1. Make a data set called `nyc_flights` that contains for each day
@@ -167,9 +176,9 @@ nyc_flights <-
   flights %>%
   filter(!is.na(dep_delay)) %>%
   group_by(year, month, day, carrier, origin) %>%
-  summarise(mean_delay = mean(dep_delay),
-            max_delay  = max(dep_delay),
-            frac_delay = mean(dep_delay > 0),
+  summarise(mean_delay = mean(dep_delay, na.rm = T),
+            max_delay  = max(dep_delay, na.rm = T),
+            frac_delay = mean(dep_delay > 0, na.rm = T),
             n = n()) %>%
   ungroup() %>%
   filter(n >= 10)
@@ -210,11 +219,25 @@ weather_delay_model <-
 summary(weather_delay_model)
 
 
+# colour is set INSIDE geom_point(), so geom_smooth() never sees it:
+# one regression line through all the data
 nyc_weather_delays %>%
   left_join(airlines, by = "carrier") %>%
-  ggplot(aes(y = mean_delay, x = total_precip, color = name)) +
-  geom_point(alpha = 0.2) +
+  ggplot(aes(y = mean_delay, x = total_precip)) +
+  geom_point(aes(color = name), alpha = 0.2) +
   geom_smooth(method = "lm", se = F, formula = "y ~ x") +
+  labs(x = "Total Precipitation",
+       y = "Average Delay ",
+       color = "Airline")
+
+
+# now colour is also given to geom_smooth(), which splits the fit:
+# one regression line per airline
+nyc_weather_delays %>%
+  left_join(airlines, by = "carrier") %>%
+  ggplot(aes(y = mean_delay, x = total_precip)) +
+  geom_point(aes(color = name), alpha = 0.2) +
+  geom_smooth(aes(color = name), method = "lm", se = F, formula = "y ~ x") +
   labs(x = "Total Precipitation",
        y = "Average Delay ",
        color = "Airline")
@@ -228,7 +251,7 @@ coeftest(weather_delay_model,
 
 logit_data <-
   nyc_weather_delays %>%
-  mutate(any_cancelled = frac_cancelled > 0)
+  mutate(any_delay = )
 
 logit_results <- glm( ~ , 
                       data = logit_data, 
@@ -247,6 +270,6 @@ weather_delay_model_fe <-
 summary(weather_delay_model_fe, robust = T)
 
 
-# Come up with a "better" model of flight delays/cancellations
+# Come up with a "better" model of flight delays
 
 
