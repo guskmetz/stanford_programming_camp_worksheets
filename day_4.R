@@ -153,6 +153,12 @@ fahr_to_cel(100)
 # * It should return the winner
 
 
+# Now modify your `rock_paper_scissors()` function to restrict inputs
+# 
+# * It should stop() with a helpful message if either player passes
+#   something other than rock, paper, or scissors
+
+
 # Convert your for loop for extracting betas to a function where the input is the iteration number
 # 
 # It should return a tibble with the beta and the iteration number
@@ -218,6 +224,10 @@ map_(sw_people, ~.x[["gender"]] == "male")
 map_chr(sw_people, "hair_color")
 
 map(sw_people, "starships") %>% map_int(length)
+
+
+# Which film (see `sw_films`) has the most characters?
+
 
 
 # Use map to run your function 100 times 

@@ -27,6 +27,13 @@ ggplot(table1, aes(year, cases)) +
 
 # Recreate the plot showing change in cases over time using `table2` instead of `table1`. What do you need to do first?
 table2 %>%
+  filter( ) %>%
+  ggplot(aes(x = , y = , color = )) + 
+  geom_point() + 
+  geom_line()
+
+# One solution
+table2 %>%
   filter(type == "cases") %>%
   ggplot(aes(x = year, y = count, color = country)) + 
   geom_point() + 
@@ -80,6 +87,12 @@ table4a %>%
 
 
 # fix up table 3
+table3 %>%
+  separate(col = rate, into = c("cases", "population"))
+
+table3 %>% 
+  separate(rate, into = c("cases", "population"), 
+           sep = "/", convert = T)
 
 
 # fix up table 5
@@ -120,22 +133,35 @@ flights %>%
 
 # 1. What does a cancelled flight look like?
 
+# Compare the candidate indicators. `arr_time` is missing for some flights
+# that actually departed, while a missing `dep_time` means the flight never left.
+flights %>%
+  summarise(missing_dep_time = sum(is.na(dep_time)),
+            missing_arr_time = sum(is.na(arr_time)),
+            missing_air_time = sum(is.na(air_time)),
+            departed_no_arrival = sum(!is.na(dep_time) & is.na(arr_time)))
+
+# Use one definition consistently from here on.
+flights_with_status <-
+  flights %>%
+  mutate(is_cancelled = is.na(dep_time))
+
 # 2. Make a data set called `not_cancelled` that contains all non-cancelled flights
+
 # an example using is.na()
 not_cancelled <-
-  flights %>%
-  filter(!is.na(air_time))
+  flights_with_status %>%
+  filter(!is_cancelled)
 
 # the same thing using the tidyr function drop_na()
 not_cancelled <-
   flights %>%
-  drop_na(air_time)
-# or arrival time
+  drop_na(dep_time)
 
 # 3. Make a data set called `cancelled` that contains all cancelled_flights
 cancelled <-
-  flights %>%
-  filter(is.na(arr_time))
+  flights_with_status %>%
+  filter(is_cancelled)
 
 
 # Use `arrange()` to:
@@ -150,8 +176,7 @@ cancelled <-
 # fct_reorder() may come in handy
 # what is mapped to the color aesthetic?
 
-flights %>%
-  mutate(is_cancelled = is.na(arr_time)) %>%
+flights_with_status %>%
   group_by( ) %>%
   summarise(frac_cancelled = ) %>%
   ggplot(aes(y = fct_reorder( ), x = )) + 
@@ -162,7 +187,7 @@ flights %>%
 
 ########################### Relational Data ########################### 
 
-# join on the airlines dataset and remake the chart
+# join `flights_with_status` to the airlines dataset and remake the chart
 # (now with the airline's full name instead of the carrier code)
 
 # FILL IN HERE

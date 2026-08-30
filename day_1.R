@@ -136,12 +136,18 @@ ggplot(CigarettesSW, aes(x = tax, fill = year)) +
 # Bar Plots!
 data(BankWages)
 
+# What are the variables in this data set?
+# Explore it the same way we explored CigarettesSW above.
+head( )
+summary( )
+help( )
+
 bw <- BankWages
 
 ggplot(data = bw, aes(x = job, fill = gender)) +
   geom_bar(position = "fill") +
   labs(x = "Job",
-       y = "Count",
+       y = "Share",
        fill = "Gender")
 
 # Faceting
