@@ -236,6 +236,11 @@ table4b
 
 
 # "Names that switch" -- one possible approach
+#
+# Idea: for each name-year, work out which sex the name was more common for.
+# A name "switches" if BOTH sexes led it for a decent number of years.
+
+# names that were ever reasonably common
 at_least_500_babies <-
   babynames %>%
   group_by(name, year) %>%
@@ -246,20 +251,30 @@ at_least_500_babies <-
   filter(max > 500) %>%
   pull(name)
 
-
-switching_names <-
+# for each name, how many years did each sex lead?
+years_in_the_lead <-
   babynames %>%
   filter(name %in% at_least_500_babies,
          n > 500) %>%
   group_by(name, year) %>%
-  filter(n == max(n)) %>%
+  filter(n == max(n)) %>%     # the more common sex that year
   ungroup() %>%
-  count(name, sex) %>%
-  filter(n %in% 60:70) %>%
-  pull(name)
+  count(name, sex) %>%        # NB: count() replaces n with a COUNT OF YEARS
+  rename(years = n)           # so rename it to say what it is
 
+# keep names where both sexes led for at least 20 years
+switching_names <-
+  years_in_the_lead %>%
+  group_by(name) %>%
+  filter(n() == 2,               # led by both sexes at some point
+         min(years) >= 20) %>%   # and neither stretch was trivial
+  ungroup() %>%
+  pull(name) %>%
+  unique()
+
+# plot prop, not n, so a growing population does not swamp the pattern
 babynames %>%
   filter(name %in% switching_names) %>%
-  ggplot(aes(x = year, y = n, color = sex)) + 
+  ggplot(aes(x = year, y = prop, color = sex)) + 
   geom_line() + 
   facet_wrap("name", scales = "free")

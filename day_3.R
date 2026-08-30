@@ -194,8 +194,9 @@ flights_with_status %>%
 
 
 # 1. Make a data set called `nyc_flights` that contains for each day
-# the mean and max departure delay by carrier/origin airport as well as the fraction of
-# all flights delayed. Filter to carrier/day/airports that have at least 10 flights
+# the mean and max departure delay by carrier/origin airport, as well as the fraction
+# of departed flights that were delayed. Filter to carrier/day/airports that have
+# at least 10 departed flights
 
 nyc_flights <-
   flights %>%
